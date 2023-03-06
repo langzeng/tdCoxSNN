@@ -3,10 +3,13 @@ import numpy as np
 
 def baseline_hazard(df_input):
     # baseline_hazard function with Efron correction
-    # df_input: n_sample*(time0,time1,event,risk_score)
+    # df_input: n_obs*(time0,time1,event,risk_score)
     # output: n_event_time*(time,h)
     cols = ["time0","time1","event","risk_score"]
-    df_input = pd.DataFrame(df_input, columns = cols)
+    if isinstance(df_input, pd.DataFrame):
+        df_input.columns = cols
+    else:
+        df_input = pd.DataFrame(df_input, columns = cols)
     df_input[cols] = df_input[cols].apply(pd.to_numeric, errors='coerce', axis=1)
 
     event_time,ties_vector = np.unique(df_input['time1'][df_input['event'] == 1],return_counts=True)
@@ -15,11 +18,11 @@ def baseline_hazard(df_input):
 
     rs_matrix = np.tile(np.array([df_input['risk_score'].to_numpy()]).transpose(),(1,n_event_time))
     exprs_matrix = np.exp(rs_matrix)
-    # n_sample * n_event_time(sorted)
+    # n_obs * n_event_time(sorted)
 
     atrisk_matrix = ((df_input['time0'].to_numpy() < event_time[:,None]) & (df_input['time1'].to_numpy() >= event_time[:,None])).transpose()
     event_matrix = ((df_input['time1'].to_numpy()*df_input['event'].to_numpy()) == event_time[:,None]).transpose()
-    # n_sample * n_event_time(sorted)
+    # n_obs * n_event_time(sorted)
 
     # tie sum (for efron correction)
     tie_sum_vector = np.sum(exprs_matrix * atrisk_matrix,axis=0)
@@ -50,10 +53,16 @@ def baseline_hazard(df_input):
 def survprob(time_of_interest,haz,test_risk_score):
     # time_of_interest: a list of sorted time points on which the survival probability will be calculated. It is the time window after the last observation time (last_obs_time) of each subject in test_risk_score.
     # haz: n_times_train*(time,h0)
-    # test_risk_score: n_obs*(id,last_obs_time,risk_score)
-    time_of_interest = np.sort(np.array(time_of_interest))
-    haz = pd.DataFrame(haz,columns = ['time','h'])
-    test_risk_score = pd.DataFrame(test_risk_score,columns = ['id','last_obs_time','risk_score'])
+    # test_risk_score: n_subject*(id,last_obs_time,risk_score)
+    time_of_interest = np.sort(np.array(time_of_interest))  
+    if isinstance(haz, pd.DataFrame):
+        haz.columns = ['time','h']
+    else:
+        haz = pd.DataFrame(haz,columns = ['time','h'])
+    if isinstance(test_risk_score, pd.DataFrame):
+        test_risk_score.columns = ['id','last_obs_time','risk_score']
+    else:
+        test_risk_score = pd.DataFrame(test_risk_score,columns = ['id','last_obs_time','risk_score'])
     
     _,id_count = np.unique(test_risk_score["id"],return_counts=True)
     if sum(id_count>1)>0:
@@ -68,14 +77,13 @@ def survprob(time_of_interest,haz,test_risk_score):
     haz_alltimes = pd.merge(pd.DataFrame({'time': all_times}), haz, how="outer")
     haz_alltimes.fillna(0, inplace=True)
 
-    survpred = np.outer(np.exp(test_risk_score['risk_score']),haz_alltimes['h'])
-    survpred = np.cumsum(survpred,axis=1)
-    survpred = np.exp(-survpred)
+    h_tmp = np.outer(np.exp(test_risk_score['risk_score']),haz_alltimes['h'])
+    cumh_tmp = np.cumsum(h_tmp,axis=1)
 
     index_timeofinterest = np.array([np.searchsorted(all_times, timeofinterest_matrix[i]) for i in range(len(timeofinterest_matrix))])
     index_last_obs_time = np.array([np.searchsorted(all_times, test_risk_score['last_obs_time'][i]) for i in range(len(timeofinterest_matrix))])
 
-    output = np.array([(survpred[ii][index_timeofinterest[ii]])/(survpred[ii][index_last_obs_time[ii]]) for ii in range(len(survpred))])
+    output = np.array([np.exp(-(cumh_tmp[ii][index_timeofinterest[ii]])+(cumh_tmp[ii][index_last_obs_time[ii]])) for ii in range(len(cumh_tmp))])
     output = pd.DataFrame(output,columns = [str(k) for k in time_of_interest])
-    output = pd.concat([test_risk_score[['id','last_obs_time']],output],axis = 1)
+    output = pd.concat([test_risk_score,output],axis = 1)
     return output
