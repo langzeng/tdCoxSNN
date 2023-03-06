@@ -127,13 +127,13 @@ for epoch in range(num_epoch):
 print("Training Complete")
 
 with torch.no_grad():
-    pi_train = model_torch(torch.tensor(x_train,dtype=torch.float32)).clone().detach()
-    pi_test = model_torch(torch.tensor(x_test,dtype=torch.float32)).clone().detach()
+    rs_train = model_torch(torch.tensor(x_train,dtype=torch.float32)).clone().detach()
+    rs_test = model_torch(torch.tensor(x_test,dtype=torch.float32)).clone().detach()
 
 # calculate baseline hazard function
-base_haz = baseline_hazard(np.column_stack((y_train,pi_train)))
+base_haz = baseline_hazard(np.column_stack((y_train,rs_train)))
 # prepare the test dataset
-test_rs = np.column_stack((pbc2_test[['id','tstart']],pi_test)) # id time predicted_risk_score
+test_rs = np.column_stack((pbc2_test[['id','tstart']],rs_test)) # id time predicted_risk_score
 
 # calculate the survival probability at (time_of_interest+last_obs_time) for each subject
 S = survprob(time_of_interest = [1,30,60,180,365], # in days
