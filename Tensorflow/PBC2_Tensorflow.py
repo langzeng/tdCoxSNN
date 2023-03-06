@@ -36,7 +36,7 @@ index_landmark_id = np.array([((x/30)>landmarkmonth) for x in pbc2.tstop_final])
 index_landmark_visit = np.array([((x/30)>landmarkmonth) for x in pbc2.tstart])
 
 pbc2_train = pbc2[index_train & index_landmark_id].copy()
-# For each subject in test dataset, use the information of their first visit after landmark time to predict
+# For each subject in test dataset, use their first visit after landmark time to predict
 # The rest visits are treated as truth for validation
 pbc2_test = pbc2[index_test & index_landmark_id & index_landmark_visit].copy().groupby('id').first().reset_index()
 
@@ -62,11 +62,10 @@ y_test = pbc2_test[['tstart','tstop','event']].values
 num_nodes = 30             # number of nodes per hidden layer
 num_lr = 0.01              # learning rate
 num_dr = 0.2               # dropout rate
-num_epoch = 20             # number of epoches for optimization
+num_epoch = 20            # number of epoches for optimization
 batch_size = 50            # number of batch size for optimization
 
 clear_session()
-tf.config.run_functions_eagerly(True)
 
 demo = layers.Input(shape=(x_train.shape[1],), name='demo_input')
 layer1 = layers.Dense(num_nodes, activation='selu')(demo)
@@ -80,13 +79,13 @@ model.compile(optimizer='Adam', loss=loss_tdCoxSNN_Tensorflow, metrics=None)
 model.fit(x_train, y_train, epochs=num_epoch, batch_size = batch_size,verbose=1)
 print("Training Complete")
 
-pi_train = model.predict(x_train)
-pi_test = model.predict(x_test)
+rs_train = model.predict(x_train)
+rs_test = model.predict(x_test)
 
 # calculate baseline hazard function
-base_haz = baseline_hazard(np.column_stack((y_train,pi_train)))
+base_haz = baseline_hazard(np.column_stack((y_train,rs_train)))
 # prepare the test dataset
-test_rs = np.column_stack((pbc2_test[['id','tstart']],pi_test)) # id time predicted_risk_score
+test_rs = np.column_stack((pbc2_test[['id','tstart']],rs_test)) # id time predicted_risk_score
 
 # calculate the survival probability at (time_of_interest+last_obs_time) for each subject
 S = survprob(time_of_interest = [1,30,60,180,365], # in days
