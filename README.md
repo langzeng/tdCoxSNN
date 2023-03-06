@@ -7,6 +7,6 @@ The example code of time-dependent Cox Survival Neural Network (tdCoxSNN)
 
 - **PyTorch** contains the loss function in PyTorch version and PyTorch example code
 
-- **Tensorflow** contains the loss function in Tensorflow version (Eager Execution only) and Tensorflow example code
+- **Tensorflow** contains the loss function in Tensorflow version and Tensorflow example code
 
-** rTensorflow rPyTorch in progress **
+- **rTensorflow** contains the loss function in R-Tensorflow version and R-Tensorflow example code
