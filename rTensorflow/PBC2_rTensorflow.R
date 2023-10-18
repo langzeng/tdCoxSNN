@@ -68,7 +68,7 @@ model <- keras_model_sequential(input_shape = ncol(x_train)) %>%
   layer_dense(units = num_nodes, activation = 'selu') %>% 
   layer_batch_normalization() %>% 
   layer_dropout(rate = num_dr) %>% 
-  layer_dense(units = 1, activation = 'linear')
+  layer_dense(units = 1, activation = 'linear',use_bias = FALSE)
 
 summary(model)
 
