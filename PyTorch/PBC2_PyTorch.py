@@ -96,7 +96,7 @@ class tdCoxSNN(nn.Module):
         nn.init.kaiming_uniform_(self.layer_1.weight, nonlinearity="relu")
         self.batchnorm = nn.BatchNorm1d(hidden_dim)
         self.dropout = nn.Dropout(p=num_dr)
-        self.layer_2 = nn.Linear(hidden_dim, output_dim)
+        self.layer_2 = nn.Linear(hidden_dim, output_dim,bias=False)
        
     def forward(self, x):
         x = F.selu(self.layer_1(x))
