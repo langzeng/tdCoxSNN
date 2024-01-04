@@ -7,6 +7,8 @@ def loss_tdCoxSNN_Tensorflow(y_true, y_pred):
     y_true = tf.cast(y_true, tf.float32) # tstart, tstop, event
     y_pred = tf.cast(y_pred, tf.float32)
     y_pred = tf.squeeze(y_pred)
+
+    n_sample = tf.cast(tf.size(y_pred),tf.float32)
     
     time0 = tf.cast(tf.squeeze(y_true[:,0]),tf.float32)
     time = tf.cast(tf.squeeze(y_true[:,1]),tf.float32)
@@ -57,6 +59,6 @@ def loss_tdCoxSNN_Tensorflow(y_true, y_pred):
                            out0)
     log_sum_haz = tf.math.reduce_sum(log_sum_haz)
     log_lik = tf.math.reduce_sum(tie_risk)-log_sum_haz
-    log_lik_output = tf.negative(log_lik)
+    log_lik_output = tf.negative(log_lik)/n_sample
     
     return log_lik_output
