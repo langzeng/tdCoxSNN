@@ -5,6 +5,8 @@ def loss_tdCoxSNN_PyTorch(y_pred, y_true):
     y_true = y_true.type(torch.float32) # tstart, tstop, event
     y_pred = y_pred.type(torch.float32)
     y_pred = torch.flatten(y_pred)
+
+    n_sample = y_pred.shape[0]
     
     time0 = torch.flatten(y_true[:,0])
     time = torch.flatten(y_true[:,1])
@@ -47,4 +49,4 @@ def loss_tdCoxSNN_PyTorch(y_pred, y_true):
         log_sum_haz = torch.sum(log_sum_haz)
         log_lik = torch.sum(tie_risk)-log_sum_haz
         
-        return torch.negative(log_lik)
+        return torch.negative(log_lik)/n_sample
