@@ -3,6 +3,8 @@ loss_tdCoxSNN_rTensorflow = function(y_true, y_pred){
   y_true = tf$cast(y_true, tf$float32) # tstart, tstop, event
   y_pred = tf$cast(y_pred, tf$float32)
   y_pred = tf$squeeze(y_pred)
+
+  n_sample = tf$cast(tf$size(y_pred),tf$float32)
   
   time0 = tf$cast(tf$squeeze(y_true[,1]),tf$float32)
   time = tf$cast(tf$squeeze(y_true[,2]),tf$float32)
@@ -62,7 +64,7 @@ loss_tdCoxSNN_rTensorflow = function(y_true, y_pred){
   log_sum_haz_value = tf$reduce_sum(log_sum_haz)
   log_lik = tf$reduce_sum(tie_risk)-log_sum_haz_value
   
-  log_lik_output = tf$multiply(tf$negative(log_lik),tf$subtract(1,no_event))
+  log_lik_output = tf$multiply(tf$negative(log_lik),tf$subtract(1,no_event))/n_sample
   
   return(log_lik_output)
 }
