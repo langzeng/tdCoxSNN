@@ -36,7 +36,7 @@ def loss_tdCoxSNN_PyTorch(y_pred, y_true):
         cum_haz = torch.mm(at_risk_index, (torch.exp(torch.clip(y_pred,-20,20))).unsqueeze(1))
 
         mask_tie_risk = torch.arange(torch.max(tie_count)) < (tie_count[:,None])
-        out0 = torch.zeros(mask_tie_haz.size(),dtype = torch.float32)
+        out0 = torch.zeros(mask_tie_risk.size(),dtype = torch.float32)
 
         log_sum_haz = torch.where(mask_tie_risk,torch.ones(mask_tie_risk.size(),dtype = torch.float32),out0)*cum_haz
         log_sum_haz = torch.where(mask_tie_risk,torch.log(log_sum_haz+1e-15),out0)
